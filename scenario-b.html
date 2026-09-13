@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -658,4 +659,626 @@
 </script>
 
 </body>
+=======
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skenario B</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --text:#1a1a1a;
+    --muted:#6b6b6b;
+    --line:#e2e2e2;
+    --mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+    --sans: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+  }
+
+  .tag-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 32px;
+    border-bottom:1px solid var(--line);
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:.5px;
+    background:#fafafa;
+  }
+  .tag-bar .dot{
+    display:inline-block; width:8px; height:8px; border-radius:50%;
+    background:#ef5b5b; margin-right:8px;
+  }
+
+  /* ---- flashing banner across the top: bright, saturated, animated ---- */
+  .flash-banner{
+    background:linear-gradient(90deg, #ff2d55, #ffcc00, #ff2d55);
+    background-size:200% 100%;
+    animation: flashmove 1.2s linear infinite, flashcolor .5s ease-in-out infinite alternate;
+    color:#fff;
+    text-align:center;
+    font-weight:800;
+    font-size:14px;
+    padding:10px;
+    letter-spacing:.3px;
+  }
+  @keyframes flashmove{ 0%{ background-position:0% 0; } 100%{ background-position:200% 0; } }
+  @keyframes flashcolor{ 0%{ filter:brightness(1); } 100%{ filter:brightness(1.35); } }
+
+  .layout{
+    max-width:1100px;
+    margin:0 auto;
+    padding:24px 24px 60px;
+    display:grid;
+    grid-template-columns:1fr 260px;
+    gap:20px;
+  }
+  @media (max-width:800px){ .layout{ grid-template-columns:1fr; } }
+
+  .main-col{ min-width:0; }
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:10px;
+    color:#999;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    margin:20px 0 8px;
+  }
+  h1{
+    font-size:26px;
+    font-weight:800;
+    margin:0 0 10px;
+    color:#111;
+  }
+  p.lead{
+    font-size:13px;
+    line-height:1.5;
+    color:#5a5a5a;
+    max-width:520px;
+    margin-bottom:16px;
+  }
+
+  /* article body: text interrupted by many small images to fragment reading flow */
+  .article-body p{ font-size:13px; line-height:1.6; color:#444; margin:0 0 14px; }
+
+  .inline-pic{
+    width:100%;
+    height:130px;
+    border-radius:6px;
+    margin:14px 0;
+    background:#eee;
+    border:1px solid #ddd;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#999;
+    font-family:var(--mono);
+    font-size:10px;
+    overflow:hidden;
+  }
+  .inline-pic img{ width:100%; height:100%; object-fit:cover; }
+
+  /* ---- ad column: dense, saturated, competing colors ---- */
+  .ad-col{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .ad{
+    border-radius:8px;
+    padding:14px;
+    font-size:11px;
+    line-height:1.4;
+  }
+  .ad .tag{
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-bottom:6px;
+    opacity:.85;
+  }
+  .ad.a1{ background:#ffe600; color:#1a1a1a; border:1px solid #e6cf00; }
+  .ad.a2{ background:linear-gradient(135deg,#ff4d6d,#ff8fa3); color:#fff; }
+  .ad.a3{ background:#00c2ff; color:#012a36; }
+  .ad.a4{ background:linear-gradient(135deg,#7b2ff7,#f107a3); color:#fff; }
+  .ad.a5{ background:#39e639; color:#0a2e0a; }
+
+  .widget-noise{
+    background:#f5f5f5;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    font-family:var(--mono);
+    font-size:9px;
+    color:#777;
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+  }
+  .widget-noise span{ background:#fff; border:1px solid #ddd; border-radius:20px; padding:2px 7px; }
+
+  /* ---- popup modal: appears immediately, stays until dismissed (static, no auto-hide) ---- */
+  .popup-overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex; align-items:center; justify-content:center;
+    z-index:50;
+  }
+  .popup-card{
+    width:320px;
+    background:#fff;
+    border-radius:10px;
+    padding:22px;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);
+    border-top:6px solid #ff2d55;
+  }
+  .popup-card h3{ margin:0 0 8px; font-size:16px; color:#111; }
+  .popup-card p{ font-size:12px; color:#555; margin:0 0 16px; line-height:1.5; }
+  .popup-card button{
+    width:100%;
+    padding:11px;
+    border-radius:6px;
+    border:none;
+    background:#111;
+    color:#fff;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .popup-card .close-x{
+    float:right; cursor:pointer; color:#999; font-size:14px; margin:-6px -4px 0 0;
+  }
+
+  /* ---- form (the actual task, buried among the clutter) ---- */
+  .task-card{
+    background:#fcfcfc;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:18px;
+    margin-top:18px;
+  }
+  .task-card label{ display:block; font-size:11px; color:#777; margin:12px 0 5px; }
+  .task-card input, .task-card select{
+    width:100%; padding:9px 10px; border-radius:6px;
+    border:1px solid #ddd; background:#fff; font-size:13px; color:#111;
+  }
+  .submit-btn{
+    margin-top:16px; width:100%;
+    padding:12px; border-radius:6px; border:none;
+    background:#ef5b5b; color:#fff; font-weight:800; font-size:13px; cursor:pointer;
+  }
+  .submit-btn:hover{ filter:brightness(1.05); }
+
+  .result{
+    display:none; margin-top:16px; padding:12px 14px;
+    border-radius:6px; border:1px solid #ffd9d9; background:#fff5f5;
+    font-family:var(--mono); font-size:12px; color:#a33;
+  }
+
+  /* ============ CV TELEMETRY PANEL (passive — sensing/logging only) ============
+     Dark card so it stays legible against this scenario's bright white
+     background. Never touches .layout content — Scenario B stays 100% static
+     and non-adaptive regardless of what the classifier reads. */
+  .cv-panel{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    width:200px;
+    background:#0d1117;
+    border:1px solid #232b34;
+    border-radius:10px;
+    padding:12px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:#9aa3b0;
+    z-index:100;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  .cv-header{
+    display:flex; align-items:center; gap:6px;
+    font-size:10px; letter-spacing:.4px; text-transform:uppercase;
+    color:#e6ecf2; margin-bottom:8px;
+  }
+  .cv-dot{ width:7px; height:7px; border-radius:50%; background:#555; flex-shrink:0; }
+  .cv-dot.active{ background:#3fd0c9; box-shadow:0 0 6px #3fd0c9; }
+  .cv-video-wrap{
+    width:100%; aspect-ratio:4/3; background:#000;
+    border-radius:6px; overflow:hidden; margin-bottom:8px;
+    border:1px solid #232b34;
+  }
+  .cv-panel video{ width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+  .cv-btn{
+    width:100%; padding:8px; border-radius:6px; border:1px solid #232b34;
+    background:#161d28; color:#e6ecf2; font-family:var(--sans);
+    font-size:11px; font-weight:600; cursor:pointer; margin-bottom:6px;
+  }
+  .cv-btn:hover{ border-color:#3fd0c9; }
+  .cv-btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .cv-status{ font-size:10px; color:#9aa3b0; margin-bottom:6px; line-height:1.5; }
+  .cv-metrics{ display:flex; flex-direction:column; gap:4px; margin-bottom:8px; }
+  .cv-row{ display:flex; justify-content:space-between; font-size:10px; }
+  .cv-row span:last-child{ color:#e6ecf2; }
+
+  .cv-load-score{ text-align:center; padding:4px 0 6px; }
+  .cv-load-score .cv-num{
+    font-family:var(--mono); font-size:28px; font-weight:600;
+    color:#3fd0c9; transition:color .3s;
+  }
+  .cv-load-score .cv-tag{
+    font-family:var(--mono); font-size:9px; letter-spacing:1.2px;
+    text-transform:uppercase; color:#9aa3b0; margin-top:1px;
+  }
+  .cv-bar-track{
+    height:5px; background:#161d28; border-radius:4px; overflow:hidden;
+    border:1px solid #232b34; margin-bottom:10px;
+  }
+  .cv-bar-fill{
+    height:100%; width:0%; background:#3fd0c9;
+    transition:width .3s ease, background .3s ease;
+  }
+</style>
+</head>
+<body>
+
+<div class="flash-banner">⚡ FLASH SALE HARI INI SAJA — DISKON HINGGA 70%! JANGAN SAMPAI TERLEWAT ⚡</div>
+
+<div class="tag-bar">
+  <span><span class="dot"></span>Skenario B</span>
+  <span id="clock">t = 0.0s</span>
+</div>
+
+<!-- popup shows immediately and stays until participant closes it, per static/no-intervention design -->
+<div class="popup-overlay" id="popup">
+  <div class="popup-card">
+    <span class="close-x" id="popupClose">✕</span>
+    <h3>🎉 Dapatkan Voucher Rp100.000!</h3>
+    <p>Daftar newsletter kami sekarang dan dapatkan voucher perjalanan eksklusif untuk pemesanan pertama Anda.</p>
+    <button id="popupSubscribe">Ya, Daftarkan Saya</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="main-col">
+    <h1>Pesan Tiket Perjalanan</h1>
+    <p class="lead">Lengkapi detail perjalanan Anda di bawah, lalu tekan "Selesaikan Pemesanan".</p>
+
+    <div class="article-body">
+      <div class="inline-pic">
+        <!-- Ganti dengan <img src="images/nama-file.jpg" alt="..."> untuk gambar sendiri -->
+        <img src="" alt="" style="display:none">
+        <span>ilustrasi bandara</span>
+      </div>
+      <p>Musim liburan telah tiba dan berbagai maskapai menawarkan promo menarik untuk berbagai rute domestik maupun internasional. Pastikan Anda memesan lebih awal untuk mendapatkan harga terbaik.</p>
+
+      <div class="inline-pic">
+        <img src="" alt="" style="display:none">
+        <span>ilustrasi kabin pesawat</span>
+      </div>
+      <p>Kelas ekonomi premium kini tersedia dengan fasilitas tambahan seperti ruang kaki lebih luas dan prioritas boarding tanpa biaya tambahan yang signifikan dibanding kelas reguler.</p>
+
+      <div class="inline-pic">
+        <img src="" alt="" style="display:none">
+        <span>ilustrasi destinasi</span>
+      </div>
+      <p>Destinasi populer musim ini termasuk Bali, Yogyakarta, dan Raja Ampat, dengan tingkat hunian hotel yang terus meningkat menjelang akhir tahun.</p>
+    </div>
+
+    <div class="task-card">
+      <label>Kota asal</label>
+      <input type="text" placeholder="Yogyakarta">
+      <label>Kota tujuan</label>
+      <input type="text" placeholder="Jakarta">
+      <label>Tanggal berangkat</label>
+      <input type="date">
+      <label>Kelas</label>
+      <select><option>Ekonomi</option><option>Bisnis</option><option>Eksekutif</option></select>
+      <button class="submit-btn" id="submitBtn">Selesaikan Pemesanan</button>
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+
+  <div class="ad-col">
+    <div class="ad a1"><div class="tag">Sponsored</div>Diskon hotel hingga 40%! Booking sekarang sebelum promo berakhir HARI INI.</div>
+    <div class="ad a2"><div class="tag">Iklan</div>Asuransi perjalanan mulai Rp25.000. Lindungi perjalanan Anda sekarang juga!</div>
+    <div class="widget-noise"><span>Cuaca: 29°C</span><span>Kurs: Rp15.900</span><span>Trending #7</span><span>Notifikasi (12)</span><span>Live: 340 orang melihat ini</span></div>
+    <div class="ad a3"><div class="tag">Promo</div>Sewa mobil murai mulai Rp150rb/hari. Gratis antar-jemput bandara!</div>
+    <div class="ad a4"><div class="tag">Sponsored</div>Kartu kredit travel dengan cashback 5% untuk semua transaksi tiket &amp; hotel.</div>
+    <div class="ad a5"><div class="tag">Iklan</div>Aplikasi kami memberi diskon tambahan 15% khusus pengguna baru!</div>
+  </div>
+</div>
+
+<div class="cv-panel">
+  <div class="cv-header"><span class="cv-dot" id="cvDot"></span>Eye Monitoring</div>
+  <div class="cv-video-wrap"><video id="cvVideo" autoplay playsinline muted></video></div>
+  <button class="cv-btn" id="cvStart">Aktifkan Kamera</button>
+  <div class="cv-status" id="cvStatus">Belum aktif</div>
+
+  <div class="cv-load-score" id="cvLoadScore" style="display:none">
+    <div class="cv-num" id="cvLoadNum">--</div>
+    <div class="cv-tag" id="cvLoadTag">belum ada data</div>
+  </div>
+  <div class="cv-bar-track" id="cvBarTrack" style="display:none"><div class="cv-bar-fill" id="cvBarFill"></div></div>
+
+  <div class="cv-metrics" id="cvMetrics" style="display:none">
+    <div class="cv-row"><span>EAR</span><span id="cvEar">–</span></div>
+    <div class="cv-row"><span>Blink/5s</span><span id="cvBlink">–</span></div>
+    <div class="cv-row"><span>Saccade</span><span id="cvSaccade">–</span></div>
+    <div class="cv-row"><span>Gaze disp.</span><span id="cvDisp">–</span></div>
+    <div class="cv-row"><span>Skor distress</span><span id="cvScore">–</span></div>
+  </div>
+  <button class="cv-btn" id="cvExport" style="display:none">Unduh Data (CSV)</button>
+</div>
+
+<script type="module">
+  import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+  // ==== EXPERIMENT CONFIG ====
+  const TIME_LIMIT_SECONDS = 60;
+
+  // ---------- Task timer (only starts once the camera is activated; counts
+  // down and auto-ends the task if the limit is hit) + popup ----------
+  const clockEl = document.getElementById('clock');
+  const taskCardControls = document.querySelectorAll('.task-card input, .task-card select, .task-card button');
+  let startTime = null;
+  let taskEnded = false;
+  let timer = null;
+
+  clockEl.textContent = 'menunggu kamera…';
+  taskCardControls.forEach(el => el.disabled = true);
+
+  function startTaskTimer() {
+    if (startTime !== null) return; // already running
+    startTime = performance.now();
+    taskCardControls.forEach(el => el.disabled = false);
+    timer = setInterval(() => {
+      const elapsed = (performance.now() - startTime) / 1000;
+      const remaining = Math.max(0, TIME_LIMIT_SECONDS - elapsed);
+      clockEl.textContent = 'sisa waktu: ' + remaining.toFixed(1) + 's';
+      if (remaining <= 0 && !taskEnded) endTask(true);
+    }, 100);
+  }
+
+  const popup = document.getElementById('popup');
+  document.getElementById('popupClose').addEventListener('click', () => popup.remove());
+  document.getElementById('popupSubscribe').addEventListener('click', () => popup.remove());
+
+  function endTask(timedOut) {
+    if (taskEnded) return;
+    taskEnded = true;
+    if (timer) clearInterval(timer);
+    const completionSeconds = startTime !== null
+      ? Math.min((performance.now() - startTime) / 1000, TIME_LIMIT_SECONDS)
+      : 0;
+    const resultEl = document.getElementById('result');
+    resultEl.style.display = 'block';
+    resultEl.textContent = timedOut
+      ? 'Waktu habis (' + TIME_LIMIT_SECONDS + 's) — tugas tidak diselesaikan tepat waktu.'
+      : 'Task Completion Time: ' + completionSeconds.toFixed(2) + ' detik';
+    console.log('[Skenario B] ' + (timedOut ? 'TIMEOUT' : 'Completed') + ' at (s):', completionSeconds.toFixed(2));
+    taskCardControls.forEach(el => el.disabled = true);
+
+    // Task is over — stop the CV loop (and therefore CSV recording) and
+    // release the camera.
+    running = false;
+    if (cvVideo.srcObject) {
+      cvVideo.srcObject.getTracks().forEach(track => track.stop());
+    }
+    cvStatus.textContent = 'Perekaman dihentikan — tugas selesai.';
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    endTask(false);
+  });
+
+  // ---------- CV telemetry (sensing + logging only — never touches page DOM) ----------
+  const LEFT_EYE  = [33, 160, 158, 133, 153, 144];
+  const RIGHT_EYE = [362, 385, 387, 263, 373, 380];
+  const LEFT_IRIS_CENTER  = 468;
+  const RIGHT_IRIS_CENTER = 473;
+
+  class FeatureBuffer {
+    constructor(windowMs = 5000) { this.windowMs = windowMs; this.samples = []; }
+    add(sample) {
+      this.samples.push(sample);
+      const cutoff = performance.now() - this.windowMs;
+      while (this.samples.length && this.samples[0].t < cutoff) this.samples.shift();
+    }
+    vector() {
+      if (this.samples.length < 2) return null;
+      const ears = this.samples.map(s => s.ear);
+      const meanEAR = ears.reduce((a,b)=>a+b,0) / ears.length;
+      const BLINK_THRESH = 0.21;
+      let blinks = 0, wasBelow = false;
+      for (const e of ears) { const below = e < BLINK_THRESH; if (below && !wasBelow) blinks++; wasBelow = below; }
+      let velSum = 0, velCount = 0;
+      const xs = [], ys = [];
+      for (let i = 0; i < this.samples.length; i++) {
+        xs.push(this.samples[i].irisX); ys.push(this.samples[i].irisY);
+        if (i > 0) {
+          const a = this.samples[i-1], b = this.samples[i];
+          const dt = (b.t - a.t) / 1000;
+          if (dt > 0) {
+            const dx = b.irisX - a.irisX, dy = b.irisY - a.irisY;
+            velSum += Math.sqrt(dx*dx + dy*dy) / dt; velCount++;
+          }
+        }
+      }
+      const meanSaccade = velCount ? velSum / velCount : 0;
+      const meanX = xs.reduce((a,b)=>a+b,0)/xs.length, meanY = ys.reduce((a,b)=>a+b,0)/ys.length;
+      const variance = xs.reduce((acc,x,i) => acc + (x-meanX)**2 + (ys[i]-meanY)**2, 0) / xs.length;
+      const gazeDispersion = Math.sqrt(variance);
+      return { meanEAR, blinkCount: blinks, meanSaccade, gazeDispersion, n: this.samples.length };
+    }
+  }
+
+  const buffer = new FeatureBuffer(5000);
+  let baselineBlink = null, baselineSaccade = null, calibrating = true;
+
+  function estimateCognitiveLoad(f) {
+    if (calibrating && f.n > 15) {
+      baselineBlink = Math.max(f.blinkCount, 1);
+      baselineSaccade = Math.max(f.meanSaccade, 0.01);
+      calibrating = false;
+    }
+    const blinkRef = baselineBlink ?? 3;
+    const saccadeRef = baselineSaccade ?? 0.05;
+    const blinkDropRatio = Math.max(0, 1 - (f.blinkCount / blinkRef));
+    // Saccade velocity scored as a drop from personal baseline (Di Stasi et al., 2010;
+    // Savage et al., 2020: peak saccade velocity decreases as workload increases).
+    // Note: contested — some studies report the opposite direction (e.g. Bodala et
+    // al., 2014); relationship appears task-dependent.
+    const saccadeDropRatio = Math.max(0, 1 - (f.meanSaccade / saccadeRef));
+    const dispersionScore = Math.min(1, f.gazeDispersion / 0.014);
+    const earStability = f.meanEAR > 0.24 ? 0.5 : 0.2;
+    return Math.max(0, Math.min(1, 0.34*blinkDropRatio + 0.30*saccadeDropRatio + 0.24*dispersionScore + 0.12*earStability));
+  }
+
+  function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+  function calcEAR(lm, idx) {
+    const [p1,p2,p3,p4,p5,p6] = idx.map(i => lm[i]);
+    return (dist(p2,p6) + dist(p3,p5)) / (2.0 * dist(p1,p4));
+  }
+
+  const cvVideo = document.getElementById('cvVideo');
+  const cvDot = document.getElementById('cvDot');
+  const cvStart = document.getElementById('cvStart');
+  const cvStatus = document.getElementById('cvStatus');
+  const cvMetrics = document.getElementById('cvMetrics');
+  const cvEar = document.getElementById('cvEar');
+  const cvBlink = document.getElementById('cvBlink');
+  const cvSaccade = document.getElementById('cvSaccade');
+  const cvDisp = document.getElementById('cvDisp');
+  const cvScore = document.getElementById('cvScore');
+  const cvExport = document.getElementById('cvExport');
+  const cvLoadScore = document.getElementById('cvLoadScore');
+  const cvLoadNum = document.getElementById('cvLoadNum');
+  const cvLoadTag = document.getElementById('cvLoadTag');
+  const cvBarTrack = document.getElementById('cvBarTrack');
+  const cvBarFill = document.getElementById('cvBarFill');
+
+  // Same thresholds/labels as the adaptive system (index.html) — kept identical
+  // for cross-scenario comparability, but purely a passive readout here: nothing
+  // in Scenario B ever reacts to this score (static, no intervention by design).
+  const LOAD_HIGH = 0.58, LOAD_MID = 0.30;
+
+  let faceLandmarker = null, running = false;
+  const dataLog = [];
+  let lastLogTime = 0;
+
+  async function startCV() {
+    cvStart.disabled = true;
+    cvStatus.textContent = 'Memuat model…';
+    try {
+      const filesetResolver = await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+      );
+      faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+        baseOptions: {
+          modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+          delegate: "GPU"
+        },
+        runningMode: "VIDEO", numFaces: 1, refineLandmarks: true
+      });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 }, audio: false });
+      cvVideo.srcObject = stream;
+      await new Promise(res => cvVideo.onloadedmetadata = res);
+      cvVideo.play();
+      cvDot.classList.add('active');
+      cvStatus.textContent = 'Aktif — mengalibrasi baseline…';
+      cvMetrics.style.display = 'flex';
+      cvLoadScore.style.display = 'block';
+      cvBarTrack.style.display = 'block';
+      cvExport.style.display = 'block';
+      cvStart.textContent = 'Berjalan…';
+      running = true;
+      startTaskTimer();
+      requestAnimationFrame(loop);
+    } catch (err) {
+      console.error(err);
+      cvStatus.textContent = 'Error: ' + err.message;
+      cvStart.disabled = false;
+    }
+  }
+
+  function loop() {
+    if (!running) return;
+    const nowMs = performance.now();
+    if (cvVideo.readyState >= 2) {
+      const result = faceLandmarker.detectForVideo(cvVideo, nowMs);
+      if (result.faceLandmarks && result.faceLandmarks.length > 0) {
+        const lm = result.faceLandmarks[0];
+        const ear = (calcEAR(lm, LEFT_EYE) + calcEAR(lm, RIGHT_EYE)) / 2;
+        const irisL = lm[LEFT_IRIS_CENTER], irisR = lm[RIGHT_IRIS_CENTER];
+        buffer.add({ t: nowMs, ear, irisX: (irisL.x+irisR.x)/2, irisY: (irisL.y+irisR.y)/2 });
+        const f = buffer.vector();
+        if (f) {
+          const score = estimateCognitiveLoad(f);
+          cvEar.textContent = f.meanEAR.toFixed(3);
+          cvBlink.textContent = f.blinkCount;
+          cvSaccade.textContent = f.meanSaccade.toFixed(3);
+          cvDisp.textContent = f.gazeDispersion.toFixed(4);
+          cvScore.textContent = (score*100).toFixed(0) + '%';
+
+          let loadTagText, loadColor;
+          if (score > LOAD_HIGH) { loadTagText = 'distress tinggi'; loadColor = '#ef5b5b'; }
+          else if (score > LOAD_MID) { loadTagText = 'distress menengah'; loadColor = '#f2a154'; }
+          else { loadTagText = 'tenang'; loadColor = '#3fd0c9'; }
+          cvLoadNum.textContent = (score*100).toFixed(0);
+          cvLoadNum.style.color = loadColor;
+          cvLoadTag.textContent = loadTagText;
+          cvBarFill.style.width = (score*100).toFixed(0) + '%';
+          cvBarFill.style.background = loadColor;
+
+          cvStatus.textContent = calibrating ? 'Aktif — mengalibrasi baseline…' : 'Aktif — merekam (tidak mengubah tampilan)';
+
+          // throttled logging: one row per second (stops once the task ends)
+          if (!taskEnded && nowMs - lastLogTime > 1000) {
+            lastLogTime = nowMs;
+            dataLog.push({
+              t_task_s: ((nowMs - startTime) / 1000).toFixed(2),
+              ear: f.meanEAR.toFixed(3),
+              blink: f.blinkCount,
+              saccade: f.meanSaccade.toFixed(4),
+              dispersion: f.gazeDispersion.toFixed(5),
+              score: score.toFixed(3)
+            });
+          }
+        }
+      } else {
+        cvStatus.textContent = 'Aktif — wajah tidak terdeteksi';
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+
+  cvExport.addEventListener('click', () => {
+    const header = 't_task_s,ear,blink,saccade,dispersion,score\n';
+    const rows = dataLog.map(r => `${r.t_task_s},${r.ear},${r.blink},${r.saccade},${r.dispersion},${r.score}`).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'scenario-b-webcog-log.csv'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  cvStart.addEventListener('click', startCV);
+</script>
+
+</body>
+>>>>>>> eb539c9a8901cd4fd7ef629c306967f466f0a3b0
 </html>
