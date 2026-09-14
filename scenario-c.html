@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WebCog-Net</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
 <style>
   :root{
     --bg:#0b0f14;
@@ -528,6 +529,68 @@ function estimateCognitiveLoad(features) {
 }
 function clamp01(x){ return Math.max(0, Math.min(1, x)); }
 
+// ---------- Trained 1D CNN-GRU model (replaces the heuristic above when available) ----------
+// Trained via train_model.py on Scenario A (label=0, low distress) and Scenario B
+// (label=1, static high distress) session exports. See model/ for the trained
+// artifacts and README.md for how this was produced and its current limitations.
+//
+// IMPORTANT: as shipped, this model was trained on SYNTHETIC placeholder data
+// (see generate_synthetic_data.py) purely to demonstrate the pipeline works
+// end-to-end. It carries NO empirical validity until retrained on real
+// participant CSVs exported from actual Scenario A/B sessions. The heuristic
+// above remains as an automatic fallback — during the first ~30s of a session
+// (before the model has enough context) and if the model fails to load at all
+// (e.g. no network access to fetch it).
+const MODEL_FEATURES = ["ear", "blink", "saccade", "dispersion"];
+const MODEL_WINDOW_LEN = 30; // must match WINDOW_LEN in train_model.py
+
+let trainedModel = null;
+let modelNormStats = null;
+let modelScore = null;       // null until the model has produced a prediction
+let usingModel = false;      // for the UI: which source is currently driving the stage
+const sequenceBuffer = [];   // rolling window of raw {ear, blink, saccade, dispersion}
+let lastSeqSampleTime = 0;
+
+async function loadTrainedModel() {
+  try {
+    const [model, statsResp] = await Promise.all([
+      tf.loadLayersModel('./model/tfjs/model.json'),
+      fetch('./model/model_norm_stats.json'),
+    ]);
+    trainedModel = model;
+    modelNormStats = await statsResp.json();
+    console.log('[WebCog-Net] Trained model loaded:', modelNormStats);
+  } catch (err) {
+    console.warn('[WebCog-Net] Trained model not available, using heuristic only.', err);
+    trainedModel = null;
+  }
+}
+
+function pushSequenceSample(features) {
+  sequenceBuffer.push({
+    ear: features.meanEAR,
+    blink: features.blinkCount,
+    saccade: features.meanSaccade,
+    dispersion: features.gazeDispersion,
+  });
+  if (sequenceBuffer.length > MODEL_WINDOW_LEN) sequenceBuffer.shift();
+}
+
+async function runModelInference() {
+  if (!trainedModel || !modelNormStats || sequenceBuffer.length < MODEL_WINDOW_LEN) return;
+  const { mean, std } = modelNormStats;
+  const windowData = sequenceBuffer.map(sample =>
+    MODEL_FEATURES.map((name, i) => (sample[name] - mean[i]) / (std[i] + 1e-8))
+  );
+  const inputTensor = tf.tensor3d([windowData]); // shape [1, WINDOW_LEN, N_FEATURES]
+  const outputTensor = trainedModel.predict(inputTensor);
+  const [value] = await outputTensor.data();
+  inputTensor.dispose();
+  outputTensor.dispose();
+  modelScore = clamp01(value);
+  usingModel = true;
+}
+
 // ---------- 3-stage state machine (with hysteresis to avoid flicker) ----------
 // Stage 3 = full clutter (low distress) ... Stage 1 = basic (high distress)
 // Distress score UP  -> move toward stage 1 (declutter)
@@ -667,12 +730,26 @@ function loop() {
 
       const features = buffer.vector();
       if (features) {
-        const score = estimateCognitiveLoad(features);
+        const heuristicScore = estimateCognitiveLoad(features);
+
+        // sample once per second for the model's sequence window (matches
+        // the ~1Hz granularity of the training data exported from A/B)
+        if (nowMs - lastSeqSampleTime > 1000) {
+          lastSeqSampleTime = nowMs;
+          pushSequenceSample(features);
+          runModelInference(); // async; updates modelScore when ready, doesn't block this frame
+        }
+
+        // prefer the trained model once it has a full window; otherwise the
+        // heuristic covers both the cold-start period and any model load failure
+        const score = (usingModel && modelScore !== null) ? modelScore : heuristicScore;
+
         updateStage(score);
         const latency = performance.now() - t0;
         updateUI(score, features, latency);
-        if (!calibrating) statusLine.textContent = 'Status: memantau — ' + features.n + ' sampel dalam window.';
-        console.debug('[WebCog-Net]', { ear: ear.toFixed(3), ...features, score: score.toFixed(2), stage });
+        const sourceLabel = (usingModel && modelScore !== null) ? 'model AI terlatih' : 'heuristik (fallback)';
+        if (!calibrating) statusLine.textContent = 'Status: memantau — ' + features.n + ' sampel · sumber skor: ' + sourceLabel;
+        console.debug('[WebCog-Net]', { ear: ear.toFixed(3), ...features, heuristicScore: heuristicScore.toFixed(2), modelScore, score: score.toFixed(2), stage });
       }
       drawOverlay(lm);
     } else {
@@ -760,6 +837,7 @@ startBtn.addEventListener('click', async () => {
   startBtn.disabled = true;
   try {
     await initModel();
+    await loadTrainedModel(); // failure here is non-fatal — falls back to heuristic
     await startCamera();
     running = true;
     startBtn.textContent = 'Berjalan…';
