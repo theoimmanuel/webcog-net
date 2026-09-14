@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skenario A</title>
+<title>Skenario A — Baseline (Beban Kognitif Rendah)</title>
 <style>
   :root{
     --bg:#000000;
@@ -69,6 +69,31 @@
     max-width:520px;
     margin-bottom:36px;
   }
+
+  .task-instructions{
+    background:#0d1117;
+    border:1px solid var(--line);
+    border-left:3px solid var(--accent);
+    border-radius:8px;
+    padding:14px 16px;
+    margin-bottom:24px;
+    max-width:520px;
+  }
+  .task-instructions-label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:6px;
+  }
+  .task-instructions p{
+    font-size:13px;
+    line-height:1.6;
+    color:#c7ccd3;
+    margin:0;
+  }
+  .task-instructions strong{ color:var(--text); }
 
   .picture{
     width:100%;
@@ -217,13 +242,19 @@
 <body>
 
 <div class="tag-bar">
-  <span><span class="dot"></span>Skenario A</span>
+  <span><span class="dot"></span>Skenario A — Baseline</span>
   <span id="clock">t = 0.0s</span>
 </div>
 
 <div class="wrap">
+  <div class="eyebrow">Tugas: Pemesanan Tiket Perjalanan</div>
   <h1>Pesan Tiket Perjalanan</h1>
-  <p class="lead">Lengkapi detail perjalanan Anda di bawah ini, lalu tekan tombol "Selesaikan Pemesanan" begitu selesai.</p>
+  <div class="task-instructions">
+    <div class="task-instructions-label">🎯 Tugas Anda</div>
+    <p>Baca teks rekomendasi di bawah, lalu isi formulir menggunakan <strong>3 informasi yang disebutkan dalam teks</strong>: kota keberangkatan, tanggal keberangkatan, dan kelas penerbangan yang direkomendasikan. Kota tujuan sudah ditentukan (Jakarta).</p>
+  </div>
+
+  <p class="lead">Tim customer service merekomendasikan agar penumpang yang hendak melakukan perjalanan jauh berangkat dari kota Surabaya, karena rute tersebut memiliki jadwal penerbangan paling fleksibel bulan ini. Untuk mendapatkan harga terbaik, penerbangan disarankan pada tanggal 20 November 2026. Mengingat durasi perjalanan yang panjang, kelas Bisnis direkomendasikan agar penumpang tetap nyaman selama di udara.</p>
 
   <div class="picture">
     <!-- Ganti div.placeholder ini dengan <img src="images/nama-file.jpg" alt="..."> untuk memakai gambar Anda sendiri -->
@@ -236,19 +267,20 @@
   <form id="taskForm">
     <div>
       <label>Kota asal</label>
-      <input type="text" placeholder="Yogyakarta" required>
+      <input type="text" id="inputOrigin" placeholder="Nama kota" required>
     </div>
     <div>
-      <label>Kota tujuan</label>
-      <input type="text" placeholder="Jakarta" required>
+      <label>Kota tujuan (sudah ditentukan)</label>
+      <input type="text" value="Jakarta" disabled>
     </div>
     <div>
       <label>Tanggal berangkat</label>
-      <input type="date" required>
+      <input type="date" id="inputDate" required>
     </div>
     <div>
       <label>Kelas</label>
-      <select>
+      <select id="inputClass" required>
+        <option value="">— pilih —</option>
         <option>Ekonomi</option>
         <option>Bisnis</option>
         <option>Eksekutif</option>
@@ -261,7 +293,7 @@
 </div>
 
 <div class="cv-panel">
-  <div class="cv-header"><span class="cv-dot" id="cvDot"></span>Eye Monitoring</div>
+  <div class="cv-header"><span class="cv-dot" id="cvDot"></span>Monitoring Fisiologis</div>
   <div class="cv-video-wrap"><video id="cvVideo" autoplay playsinline muted></video></div>
   <button class="cv-btn" id="cvStart">Aktifkan Kamera</button>
   <div class="cv-status" id="cvStatus">Belum aktif</div>
@@ -285,24 +317,36 @@
 <script type="module">
   import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
 
-  // ==== EXPERIMENT CONFIG ====
-  const TIME_LIMIT_SECONDS = 60;
+  // ==== EXPERIMENT CONFIG (standardized across Scenario A/B/C) ====
+  const TIME_LIMIT_SECONDS = 90;
+  const CORRECT_ANSWERS = { origin: 'surabaya', date: '2026-11-20', kelas: 'bisnis' };
 
-  // ---------- Task timer (only starts once the camera is activated; counts
-  // down and auto-ends the task if the limit is hit) ----------
+  function gradeTask() {
+    const originVal = (document.getElementById('inputOrigin').value || '').trim().toLowerCase();
+    const dateVal = document.getElementById('inputDate').value || '';
+    const classVal = (document.getElementById('inputClass').value || '').trim().toLowerCase();
+    let correct = 0;
+    if (originVal === CORRECT_ANSWERS.origin) correct++;
+    if (dateVal === CORRECT_ANSWERS.date) correct++;
+    if (classVal === CORRECT_ANSWERS.kelas) correct++;
+    return { correct, total: 3 };
+  }
+
+  // ---------- Task timer (starts once the camera is activated, not on page load) ----------
   const clockEl = document.getElementById('clock');
   const taskForm = document.getElementById('taskForm');
   let startTime = null;
-  let taskEnded = false;
   let timer = null;
+  let taskEnded = false;
+  let lastResult = null; // { completionSeconds, timedOut, correct, total }
 
   clockEl.textContent = 'menunggu kamera…';
-  taskForm.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
+  taskForm.querySelectorAll('.submit-btn').forEach(el => el.disabled = true);
 
   function startTaskTimer() {
-    if (startTime !== null) return; // already running
+    if (startTime !== null) return; // guard against double-start
     startTime = performance.now();
-    taskForm.querySelectorAll('input, select, button').forEach(el => el.disabled = false);
+    taskForm.querySelectorAll('.submit-btn').forEach(el => el.disabled = false);
     timer = setInterval(() => {
       const elapsed = (performance.now() - startTime) / 1000;
       const remaining = Math.max(0, TIME_LIMIT_SECONDS - elapsed);
@@ -317,22 +361,18 @@
     if (timer) clearInterval(timer);
     const completionSeconds = startTime !== null
       ? Math.min((performance.now() - startTime) / 1000, TIME_LIMIT_SECONDS)
-      : 0;
+      : null;
+    const { correct, total } = gradeTask();
+    lastResult = { completionSeconds, timedOut, correct, total };
+
     const resultEl = document.getElementById('result');
     resultEl.style.display = 'block';
-    resultEl.textContent = timedOut
-      ? 'Waktu habis (' + TIME_LIMIT_SECONDS + 's) — tugas tidak diselesaikan tepat waktu.'
-      : 'Task Completion Time: ' + completionSeconds.toFixed(2) + ' detik';
-    console.log('[Skenario A] ' + (timedOut ? 'TIMEOUT' : 'Completed') + ' at (s):', completionSeconds.toFixed(2));
+    resultEl.textContent = (timedOut ? 'Waktu habis (' + TIME_LIMIT_SECONDS + 's). ' : '')
+      + (completionSeconds !== null ? 'Task Completion Time: ' + completionSeconds.toFixed(2) + ' detik. ' : '')
+      + 'Akurasi: ' + correct + '/' + total + ' benar.';
+    console.log('[Skenario A] ' + (timedOut ? 'TIMEOUT' : 'Completed') + ' — time(s):',
+      completionSeconds !== null ? completionSeconds.toFixed(2) : 'N/A', '| accuracy:', correct + '/' + total);
     taskForm.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
-
-    // Task is over — stop the CV loop (and therefore CSV recording) and
-    // release the camera.
-    running = false;
-    if (cvVideo.srcObject) {
-      cvVideo.srcObject.getTracks().forEach(track => track.stop());
-    }
-    cvStatus.textContent = 'Perekaman dihentikan — tugas selesai.';
   }
 
   taskForm.addEventListener('submit', (e) => {
@@ -501,7 +541,7 @@
 
           cvStatus.textContent = calibrating ? 'Aktif — mengalibrasi baseline…' : 'Aktif — merekam (tidak mengubah tampilan)';
 
-          // throttled logging: one row per second (stops once the task ends)
+          // throttled logging: one row per second — stops once the task is finished
           if (!taskEnded && nowMs - lastLogTime > 1000) {
             lastLogTime = nowMs;
             dataLog.push({
@@ -522,9 +562,12 @@
   }
 
   cvExport.addEventListener('click', () => {
+    const summary = lastResult
+      ? `# scenario=A\n# task_completion_time_s=${lastResult.completionSeconds !== null ? lastResult.completionSeconds.toFixed(2) : 'NA'}\n# task_timed_out=${lastResult.timedOut}\n# task_accuracy=${lastResult.correct}/${lastResult.total}\n`
+      : `# scenario=A\n# task_completion_time_s=NA\n# task_timed_out=NA\n# task_accuracy=NA\n`;
     const header = 't_task_s,ear,blink,saccade,dispersion,score\n';
     const rows = dataLog.map(r => `${r.t_task_s},${r.ear},${r.blink},${r.saccade},${r.dispersion},${r.score}`).join('\n');
-    const blob = new Blob([header + rows], { type: 'text/csv' });
+    const blob = new Blob([summary + header + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'scenario-a-webcog-log.csv'; a.click();
