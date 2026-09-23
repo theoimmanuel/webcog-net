@@ -6,7 +6,7 @@ Zero-transmission, client-side web interface for detecting cognitive workload us
 
 ## Repository Structure
 
-'''text
+```text
 webcog-net/
 ├── my-app/                       # Next.js App Router Application
 │   ├── app/
@@ -26,10 +26,10 @@ webcog-net/
 ├── public/                       # Legacy static HTML scenarios
 ├── .gitignore
 └── README.md
-'''
+```
 
 ## Model Workflow
-'''text
+```text
 [ Webcam Feed ] 
       │
       ▼
@@ -46,7 +46,7 @@ webcog-net/
       │
       ▼
 [ 5. Dynamic DOM Adaptation ]   ──> Hysteresis-controlled CSS transitions & decluttering
-'''
+```
 
 1. Local Computer Vision Telemetry (MediaPipe WASM): Captures raw webcam frames entirely within browser memory (zero cloud transmission for privacy)  
 
