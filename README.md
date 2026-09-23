@@ -6,7 +6,7 @@ Zero-transmission, client-side web interface for detecting cognitive workload us
 
 ## Repository Structure
 
-```text
+'''text
 webcog-net/
 ├── my-app/                       # Next.js App Router Application
 │   ├── app/
@@ -26,6 +26,7 @@ webcog-net/
 ├── public/                       # Legacy static HTML scenarios
 ├── .gitignore
 └── README.md
+text'''
 
 ## Model Workflow
 [ Webcam Feed ] 
