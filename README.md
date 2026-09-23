@@ -26,9 +26,10 @@ webcog-net/
 ├── public/                       # Legacy static HTML scenarios
 ├── .gitignore
 └── README.md
-text'''
+'''
 
 ## Model Workflow
+'''text
 [ Webcam Feed ] 
       │
       ▼
@@ -45,6 +46,7 @@ text'''
       │
       ▼
 [ 5. Dynamic DOM Adaptation ]   ──> Hysteresis-controlled CSS transitions & decluttering
+'''
 
 1. Local Computer Vision Telemetry (MediaPipe WASM): Captures raw webcam frames entirely within browser memory (zero cloud transmission for privacy)  
 
